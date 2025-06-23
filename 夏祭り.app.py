@@ -1,4 +1,5 @@
 import streamlit as st
+import re
 
 # ログイン情報（例：ユーザー名とパスワードのペア）
 USERNAME = "Syny.jpd"
@@ -19,17 +20,14 @@ def check_login():
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
-# 認証されていなければログイン画面
 if not st.session_state["authenticated"]:
     check_login()
     st.stop()
 
-import streamlit as st
-import re
+# ---- アプリ本体 ----
 
 st.title("🎵 ダンス練習チェッカー（20曲・人数表示つき）")
 
-# 12曲の曲名と固定メンバー
 songs = {
     "カチューシャ": {"こゆ", "まこ", "ちさと","ゆう","しおん","そら","なるみ","ありさ","ひな","ひじり"},
     "君好き": {"ひな", "しおん", "ゆう","まあや","こゆ"},
@@ -43,13 +41,11 @@ songs = {
     "ハロハロミライ": {"はる","ひじり","あんな","ひまり","そら","なるみ","ゆー","まい"},
     "かがみ": {"はるか","こゆき","まい","ゆー","しおん","そら","ひまり"},
     "夏祭り": {"はるか","ひじり","ゆう","あんな","ゆー","そら","なるみ","ひな","まあや"},
-   }
+}
 
-# 今日の参加者入力
 names = st.text_input("🧍‍♀️ 今日の参加者をカンマまたは『、』で入力（例: あかり,けん、さゆ）")
 
 if names:
-    # 「,」または「、」で分割して正規化
     name_list = re.split(r'[、,]+', names)
     present = set(n.strip() for n in name_list if n.strip())
 
@@ -57,16 +53,28 @@ if names:
     st.markdown("## 🧑‍🤝‍🧑 本日の参加者")
     st.write("、".join(sorted(present)) or "（なし）")
 
-    st.markdown("## 📋 結果")
-
+    # 出席率のランキング準備
+    ranking = []
     for song, members in songs.items():
         attending = members & present
-        absent = members - present
         total = len(members)
         attending_count = len(attending)
+        rate = attending_count / total if total > 0 else 0
+        ranking.append((song, rate, attending_count, total, attending, members - present))
 
+    # 出席率の高い順にソート
+    ranking.sort(key=lambda x: x[1], reverse=True)
+
+    st.markdown("## 📊 出席率ランキング")
+    for song, rate, attend_num, total_num, attending, absent in ranking:
+        st.markdown(f"**🎵 {song}**： {attend_num}/{total_num}人（{rate:.0%}）")
+
+    st.markdown("---")
+    st.markdown("## 📋 各曲の詳細")
+
+    for song, rate, attend_num, total_num, attending, absent in ranking:
         st.subheader(f"{song}")
-        st.write(f"👥 全体人数：{total}")
-        st.write(f"🙋‍♀️ 本日の参加可能人数：{attending_count}")
+        st.write(f"👥 全体人数：{total_num}")
+        st.write(f"🙋‍♀️ 本日の参加可能人数：{attend_num}")
         st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
         st.write(f"❌ 不在: {'、'.join(sorted(absent)) or 'なし'}")
