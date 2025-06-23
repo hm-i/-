@@ -83,12 +83,13 @@ for song, members in songs.items():
     rate = len(attending) / len(members) if members else 0
     ranking.append((song, len(attending), len(members), rate))
 
-ranking.sort(key=lambda x: x[1], reverse=True)
+ranking.sort(key=lambda x: x[3], reverse=True)  # 出席率でソート
 
 st.markdown("---")
-st.markdown("## 🏆 出席人数ランキング（多い順）")
+st.markdown("## 🏆 出席率ランキング（高い順）")
 for song, count, total, rate in ranking:
     st.write(f"🎵 **{song}**：{count} / {total}人 出席（{rate:.0%}）")
+
 
 # ----------------------
 # 📋 各曲の出席状況
