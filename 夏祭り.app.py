@@ -23,7 +23,7 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # アプリ本体
-st.title("🎵 ダンス練習チェッカー（20曲・詳細出席情報つき）")
+st.title("🎵 ダンス練習チェッカー（夏祭り）")
 
 # 曲データ（順番保持）
 songs = {
@@ -45,9 +45,9 @@ songs = {
 def parse_names(raw_input):
     return set(n.strip() for n in re.split(r"[、,]+", raw_input) if n.strip())
 
-names_present = st.text_input("✅ 本日の参加者（例: まこ,しおん）")
-names_late = st.text_input("⏰ 遅れてくる人（例: ひまり、まこ）")
-names_leave_early = st.text_input("🚪 途中で帰る人（例: まあや,ゆう）")
+names_present = st.text_input("✅ 本日の参加者")
+names_late = st.text_input("⏰ 遅れてくる人")
+names_leave_early = st.text_input("🚪 途中で帰る人")
 
 present = parse_names(names_present)
 late = parse_names(names_late)
@@ -89,7 +89,7 @@ if present or late or early:
 
         st.subheader(f"{song}")
         st.write(f"👥 全体人数：{total}")
-        st.write(f"🙋‍♀️ 本日の参加可能人数（通常）：{attending_count}")
+        st.write(f"🙋‍♀️ 本日の参加可能人数：{attending_count}")
         st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
         
         if late_attending:
