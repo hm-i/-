@@ -22,7 +22,7 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # メンバーリスト
-all_members = ["ゆう", "まこ", "ちさと", "こゆ", "ひな", "しおん", "そら", "なるみ", "ありさ", "ひまり",
+all_members = ["ひまり", "まこ", "ちさと", "こゆ", "ゆう", "しおん", "そら", "なるみ", "ありさ", "ひな",
                "ひじり", "まあや", "ともか", "はるか", "こゆき", "まい", "ゆー", "あんな", "はる"]
 
 # 曲ごとの出演者
@@ -41,23 +41,40 @@ songs = {
     "夏祭り": {"はるか", "ひじり", "ゆう", "あんな", "ゆー", "そら", "なるみ", "ひな", "まあや"},
 }
 
-st.title("🎵 タップで出席チェック")
-
-st.markdown("## ✅ 出席者をタップして選択")
+st.title("🎵 タップで出席チェック（ボタン色変わる）")
 
 # 選択状態を記憶
 if "selected_members" not in st.session_state:
     st.session_state.selected_members = set()
 
-# 表示：4列ずつでタップボタン
 cols = st.columns(4)
+
 for idx, member in enumerate(all_members):
     col = cols[idx % 4]
-    if member in st.session_state.selected_members:
-        if col.button(f"✅ {member}", key=member):
+    selected = member in st.session_state.selected_members
+
+    # 背景色付きのボタン風表示
+    color = "#90ee90" if selected else "#eee"  # 緑かグレー
+    button_html = f"""
+    <div style="
+        background-color: {color};
+        border-radius: 8px;
+        padding: 10px 0;
+        text-align: center;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        ">
+        {member}
+    </div>
+    """
+    col.markdown(button_html, unsafe_allow_html=True)
+
+    # 透明ボタンでクリック検知（キーはmemberで一意に）
+    if col.button("", key=member):
+        if selected:
             st.session_state.selected_members.remove(member)
-    else:
-        if col.button(f"⬜ {member}", key=member):
+        else:
             st.session_state.selected_members.add(member)
 
 selected_members = st.session_state.selected_members
