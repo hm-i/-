@@ -1,7 +1,7 @@
 import streamlit as st
 import re
 
-# ログイン情報（例：ユーザー名とパスワードのペア）
+# ログイン情報
 USERNAME = "Syny.jpd"
 PASSWORD = "dance2025syny"
 
@@ -16,7 +16,6 @@ def check_login():
         else:
             st.error("ユーザー名またはパスワードが違います")
 
-# 初期状態なら未認証
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
@@ -24,10 +23,10 @@ if not st.session_state["authenticated"]:
     check_login()
     st.stop()
 
-# ---- アプリ本体 ----
-
+# アプリ本体
 st.title("🎵 ダンス練習チェッカー（20曲・人数表示つき）")
 
+# 曲とメンバー定義（順番を保持）
 songs = {
     "カチューシャ": {"こゆ", "まこ", "ちさと","ゆう","しおん","そら","なるみ","ありさ","ひな","ひじり"},
     "君好き": {"ひな", "しおん", "ゆう","まあや","こゆ"},
@@ -43,6 +42,7 @@ songs = {
     "夏祭り": {"はるか","ひじり","ゆう","あんな","ゆー","そら","なるみ","ひな","まあや"},
 }
 
+# 今日の参加者入力
 names = st.text_input("🧍‍♀️ 今日の参加者をカンマまたは『、』で入力（例: あかり,けん、さゆ）")
 
 if names:
@@ -53,28 +53,31 @@ if names:
     st.markdown("## 🧑‍🤝‍🧑 本日の参加者")
     st.write("、".join(sorted(present)) or "（なし）")
 
-    # 出席率のランキング準備
+    # 出席率ランキング用
     ranking = []
     for song, members in songs.items():
         attending = members & present
         total = len(members)
         attending_count = len(attending)
         rate = attending_count / total if total > 0 else 0
-        ranking.append((song, rate, attending_count, total, attending, members - present))
+        ranking.append((song, rate, attending_count, total))
 
-    # 出席率の高い順にソート
-    ranking.sort(key=lambda x: x[1], reverse=True)
-
+    # 出席率の高い順にソートしてランキングだけ先に表示
     st.markdown("## 📊 出席率ランキング")
-    for song, rate, attend_num, total_num, attending, absent in ranking:
+    for song, rate, attend_num, total_num in sorted(ranking, key=lambda x: x[1], reverse=True):
         st.markdown(f"**🎵 {song}**： {attend_num}/{total_num}人（{rate:.0%}）")
 
+    # 詳細表示は元の順番通り
     st.markdown("---")
     st.markdown("## 📋 各曲の詳細")
+    for song, members in songs.items():
+        attending = members & present
+        absent = members - present
+        total = len(members)
+        attending_count = len(attending)
 
-    for song, rate, attend_num, total_num, attending, absent in ranking:
         st.subheader(f"{song}")
-        st.write(f"👥 全体人数：{total_num}")
-        st.write(f"🙋‍♀️ 本日の参加可能人数：{attend_num}")
+        st.write(f"👥 全体人数：{total}")
+        st.write(f"🙋‍♀️ 本日の参加可能人数：{attending_count}")
         st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
         st.write(f"❌ 不在: {'、'.join(sorted(absent)) or 'なし'}")
