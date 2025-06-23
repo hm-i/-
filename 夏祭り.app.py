@@ -55,23 +55,23 @@ songs = {
 # ----------------------
 st.markdown("## ✅ 出席メンバーを選択")
 
-# 出席メンバーを入れるsetを用意
 if "selected_members" not in st.session_state:
     st.session_state.selected_members = set()
 
-for member in all_members:
+cols = st.columns(3)
+
+for idx, member in enumerate(all_members):
+    col = cols[idx % 3]
     checked = member in st.session_state.selected_members
-    val = st.checkbox(member, value=checked)
-    if val:
+    new_val = col.checkbox(member, value=checked, key=member)
+    if new_val and not checked:
         st.session_state.selected_members.add(member)
-    else:
-        st.session_state.selected_members.discard(member)
+    elif not new_val and checked:
+        st.session_state.selected_members.remove(member)
 
 selected_members = st.session_state.selected_members
 
-if not selected_members:
-    st.info("メンバーを選択してください。")
-    st.stop()
+st.write(f"選択中のメンバー: {', '.join(sorted(selected_members))}")
 
 
 # ----------------------
