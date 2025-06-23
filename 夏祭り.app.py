@@ -54,11 +54,25 @@ songs = {
 # ✅ 出席メンバー選択
 # ----------------------
 st.markdown("## ✅ 出席メンバーを選択")
-selected_members = set(st.multiselect("本日の出席メンバーを選んでください", all_members))
+
+# 出席メンバーを入れるsetを用意
+if "selected_members" not in st.session_state:
+    st.session_state.selected_members = set()
+
+for member in all_members:
+    checked = member in st.session_state.selected_members
+    val = st.checkbox(member, value=checked)
+    if val:
+        st.session_state.selected_members.add(member)
+    else:
+        st.session_state.selected_members.discard(member)
+
+selected_members = st.session_state.selected_members
 
 if not selected_members:
     st.info("メンバーを選択してください。")
     st.stop()
+
 
 # ----------------------
 # 📊 出席ランキング（上位順）
