@@ -5,6 +5,7 @@ import re
 USERNAME = "Syny.jpd"
 PASSWORD = "dance2025syny"
 
+# 認証チェック
 def check_login():
     st.title("🔐 ログイン")
     username = st.text_input("ユーザー名")
@@ -23,9 +24,9 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # アプリ本体
-st.title("🎵 ダンス練習チェッカー（夏祭り）")
+st.title("🎵 ダンス練習チェッカー（20曲・人数表示つき）")
 
-# 曲データ（順番保持）
+# 曲とメンバー定義（順番を保持）
 songs = {
     "カチューシャ": {"こゆ", "まこ", "ちさと","ゆう","しおん","そら","なるみ","ありさ","ひな","ひじり"},
     "君好き": {"ひな", "しおん", "ゆう","まあや","こゆ"},
@@ -41,49 +42,37 @@ songs = {
     "夏祭り": {"はるか","ひじり","ゆう","あんな","ゆー","そら","なるみ","ひな","まあや"},
 }
 
-# --- 入力欄 ---
-def parse_names(raw_input):
-    return set(n.strip() for n in re.split(r"[、,]+", raw_input) if n.strip())
+# 今日の参加者入力
+names = st.text_input("🧍‍♀️ 今日の参加者をカンマまたは『、』で入力（例: あかり,けん、さゆ）")
 
-names_present = st.text_input("✅ 本日の参加者")
-names_late = st.text_input("⏰ 遅れてくる人")
-names_leave_early = st.text_input("🚪 途中で帰る人")
+if names:
+    name_list = re.split(r'[、,]+', names)
+    present = set(n.strip() for n in name_list if n.strip())
 
-present = parse_names(names_present)
-late = parse_names(names_late)
-early = parse_names(names_leave_early)
-
-if present or late or early:
     st.markdown("---")
-    st.markdown("## 👥 入力情報の確認")
-    st.write(f"✅ 参加者：{'、'.join(sorted(present)) or '（なし）'}")
-    st.write(f"⏰ 遅れてくる人：{'、'.join(sorted(late)) or '（なし）'}")
-    st.write(f"🚪 途中で帰る人：{'、'.join(sorted(early)) or '（なし）'}")
+    st.markdown("## 🧑‍🤝‍🧑 本日の参加者")
+    st.write("、".join(sorted(present)) or "（なし）")
 
-    # 出席率ランキング準備
+    # 出席率ランキング用
     ranking = []
     for song, members in songs.items():
         attending = members & present
-        late_attending = members & late
-        early_leaving = members & early
         total = len(members)
         attending_count = len(attending)
-        rate = attending_count / total if total else 0
+        rate = attending_count / total if total > 0 else 0
         ranking.append((song, rate, attending_count, total))
 
+    # 出席率の高い順にソートしてランキングだけ先に表示
     st.markdown("## 📊 出席率ランキング")
-    for song, rate, attending_count, total in sorted(ranking, key=lambda x: x[1], reverse=True):
-        st.markdown(f"**🎵 {song}**： {attending_count}/{total}人（{rate:.0%}）")
+    for song, rate, attend_num, total_num in sorted(ranking, key=lambda x: x[1], reverse=True):
+        st.markdown(f"**🎵 {song}**： {attend_num}/{total_num}人（{rate:.0%}）")
 
+    # 詳細表示は元の順番通り
     st.markdown("---")
     st.markdown("## 📋 各曲の詳細")
-
     for song, members in songs.items():
         attending = members & present
-        late_attending = members & late
-        early_leaving = members & early
-        absent = members - present - late - early
-
+        absent = members - present
         total = len(members)
         attending_count = len(attending)
 
@@ -91,11 +80,4 @@ if present or late or early:
         st.write(f"👥 全体人数：{total}")
         st.write(f"🙋‍♀️ 本日の参加可能人数：{attending_count}")
         st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
-        
-        if late_attending:
-            st.write(f"⏰ 遅れてくる: {'、'.join(sorted(late_attending))}")
-        
-        if early_leaving:
-            st.write(f"🚪 途中で帰る: {'、'.join(sorted(early_leaving))}")
-        
         st.write(f"❌ 不在: {'、'.join(sorted(absent)) or 'なし'}")
