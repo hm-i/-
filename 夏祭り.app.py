@@ -1,11 +1,10 @@
 import streamlit as st
 
-# ログイン情報（省略可）
+# ==================
+# 🔐 ログイン情報
+# ==================
 USERNAME = "Syny.jpd"
 PASSWORD = "dance2025syny"
-
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
 
 def check_login():
     st.title("🔐 ログイン")
@@ -17,15 +16,25 @@ def check_login():
         else:
             st.error("ユーザー名またはパスワードが違います")
 
+# 初回は認証状態を False に
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+# 未認証ならログイン表示
 if not st.session_state["authenticated"]:
     check_login()
     st.stop()
 
-# メンバーリスト
+# ==================
+# 🎵 アプリ本体
+# ==================
+st.title("🎵 ダンス練習チェッカー（出席チェック＋ランキング）")
+
+# 全メンバー（事前入力）
 all_members = ["ゆう", "まこ", "ちさと", "こゆ", "ひな", "しおん", "そら", "なるみ", "ありさ", "ひまり",
                "ひじり", "まあや", "ともか", "はるか", "こゆき", "まい", "ゆー", "あんな", "はる"]
 
-# 曲ごとの出演者
+# 曲とメンバーの対応表
 songs = {
     "カチューシャ": {"こゆ", "まこ", "ちさと", "ゆう", "しおん", "そら", "なるみ", "ありさ", "ひな", "ひじり"},
     "君好き": {"ひな", "しおん", "ゆう", "まあや", "こゆ"},
@@ -41,46 +50,44 @@ songs = {
     "夏祭り": {"はるか", "ひじり", "ゆう", "あんな", "ゆー", "そら", "なるみ", "ひな", "まあや"},
 }
 
-st.title("🎵 チェックボックスで出席チェック")
+# ----------------------
+# ✅ 出席メンバー選択
+# ----------------------
+st.markdown("## ✅ 出席メンバーを選択")
+selected_members = set(st.multiselect("本日の出席メンバーを選んでください", all_members))
 
-# 出席状態を記憶
-if "selected_members" not in st.session_state:
-    st.session_state.selected_members = set()
+if not selected_members:
+    st.info("メンバーを選択してください。")
+    st.stop()
 
-for member in all_members:
-    checked = member in st.session_state.selected_members
-    val = st.checkbox(member, value=checked)
-    if val:
-        st.session_state.selected_members.add(member)
-    else:
-        st.session_state.selected_members.discard(member)
+# ----------------------
+# 📊 出席ランキング（上位順）
+# ----------------------
+ranking = []
+for song, members in songs.items():
+    attending = members & selected_members
+    rate = len(attending) / len(members) if members else 0
+    ranking.append((song, len(attending), len(members), rate))
 
-selected_members = st.session_state.selected_members
+ranking.sort(key=lambda x: x[1], reverse=True)
 
-if selected_members:
-    st.markdown("---")
-    st.markdown("## 🏆 出席人数ランキング（多い順）")
+st.markdown("---")
+st.markdown("## 🏆 出席人数ランキング（多い順）")
+for song, count, total, rate in ranking:
+    st.write(f"🎵 **{song}**：{count} / {total}人 出席（{rate:.0%}）")
 
-    ranking = []
-    for song, members in songs.items():
-        attending = members & selected_members
-        rate = len(attending) / len(members) if members else 0
-        ranking.append((song, len(attending), len(members), rate))
-    ranking.sort(key=lambda x: x[1], reverse=True)
+# ----------------------
+# 📋 各曲の出席状況
+# ----------------------
+st.markdown("---")
+st.markdown("## 📋 曲ごとの出席状況")
 
-    for song, count, total, rate in ranking:
-        st.write(f"🎵 **{song}**：{count} / {total}人 出席（{rate:.0%}）")
+for song, members in songs.items():
+    attending = members & selected_members
+    absent = members - selected_members
 
-    st.markdown("---")
-    st.markdown("## 📋 曲ごとの出席状況")
-    for song, members in songs.items():
-        attending = members & selected_members
-        absent = members - selected_members
-
-        st.subheader(f"🎵 {song}")
-        st.write(f"👥 全体人数: {len(members)}")
-        st.write(f"🙋‍♀️ 出席人数: {len(attending)}")
-        st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
-        st.write(f"❌ 不在: {'、'.join(sorted(absent)) or 'なし'}")
-else:
-    st.info("メンバーをチェックして選択してください。")
+    st.subheader(f"🎵 {song}")
+    st.write(f"👥 全体人数: {len(members)}")
+    st.write(f"🙋‍♀️ 出席人数: {len(attending)}")
+    st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
+    st.write(f"❌ 不在: {'、'.join(sorted(absent)) or 'なし'}")
