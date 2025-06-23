@@ -22,7 +22,7 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # メンバーリスト
-all_members = ["ひまり", "まこ", "ちさと", "こゆ", "ゆう", "しおん", "そら", "なるみ", "ありさ", "ひな",
+all_members = ["ゆう", "まこ", "ちさと", "こゆ", "ひな", "しおん", "そら", "なるみ", "ありさ", "ひまり",
                "ひじり", "まあや", "ともか", "はるか", "こゆき", "まい", "ゆー", "あんな", "はる"]
 
 # 曲ごとの出演者
@@ -41,41 +41,19 @@ songs = {
     "夏祭り": {"はるか", "ひじり", "ゆう", "あんな", "ゆー", "そら", "なるみ", "ひな", "まあや"},
 }
 
-st.title("🎵 タップで出席チェック（ボタン色変わる）")
+st.title("🎵 チェックボックスで出席チェック")
 
-# 選択状態を記憶
+# 出席状態を記憶
 if "selected_members" not in st.session_state:
     st.session_state.selected_members = set()
 
-cols = st.columns(4)
-
-for idx, member in enumerate(all_members):
-    col = cols[idx % 4]
-    selected = member in st.session_state.selected_members
-
-    # 背景色付きのボタン風表示
-    color = "#90ee90" if selected else "#eee"  # 緑かグレー
-    button_html = f"""
-    <div style="
-        background-color: {color};
-        border-radius: 8px;
-        padding: 10px 0;
-        text-align: center;
-        font-weight: bold;
-        cursor: pointer;
-        user-select: none;
-        ">
-        {member}
-    </div>
-    """
-    col.markdown(button_html, unsafe_allow_html=True)
-
-    # 透明ボタンでクリック検知（キーはmemberで一意に）
-    if col.button("", key=member):
-        if selected:
-            st.session_state.selected_members.remove(member)
-        else:
-            st.session_state.selected_members.add(member)
+for member in all_members:
+    checked = member in st.session_state.selected_members
+    val = st.checkbox(member, value=checked)
+    if val:
+        st.session_state.selected_members.add(member)
+    else:
+        st.session_state.selected_members.discard(member)
 
 selected_members = st.session_state.selected_members
 
@@ -105,4 +83,4 @@ if selected_members:
         st.write(f"✅ 出席: {'、'.join(sorted(attending)) or 'なし'}")
         st.write(f"❌ 不在: {'、'.join(sorted(absent)) or 'なし'}")
 else:
-    st.info("メンバーをタップして選択してください。")
+    st.info("メンバーをチェックして選択してください。")
