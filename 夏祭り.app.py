@@ -3,8 +3,8 @@ import streamlit as st
 # ==================
 # 🔐 ログイン情報
 # ==================
-USERNAME = "Syny"
-PASSWORD = "jpd"
+USERNAME = "Syny.jpd"
+PASSWORD = "dance2025syny"
 
 def check_login():
     st.title("🔐 ログイン")
